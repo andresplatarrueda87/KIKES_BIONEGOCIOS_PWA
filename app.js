@@ -60,7 +60,7 @@ const State = {
     plcStatuses: ['offline', 'offline', 'offline'],
     isPlcConnected: false,
     tanks: {
-        bio1: { value: 0, lastUpdate: 0 },
+        bio1: { value: 0, fluid: 0, lastUpdate: 0 },
         bio2: { value: 0, lastUpdate: 0 }
     },
     storage: { value: 0, lastUpdate: 0 },
@@ -285,9 +285,9 @@ const UI = {
         // BIO 1
         const t1 = State.tanks.bio1;
         document.getElementById('txt-tank-top-1').innerText = this.formatVal(t1.value);
-        document.getElementById('txt-tank-1').innerText = '--'; // Placeholder for Volume
+        document.getElementById('txt-tank-1').innerText = this.formatVal(t1.fluid);
         const bar1 = document.getElementById('tank-bar-1');
-        if (bar1) bar1.style.height = Math.min(100, Math.max(0, t1.value)) + '%';
+        if (bar1) bar1.style.height = Math.min(100, Math.max(0, t1.fluid)) + '%';
 
         // BIO 2
         const t2 = State.tanks.bio2;
@@ -464,6 +464,7 @@ const MQTT = {
             this.client.subscribe(CONFIG.TOPICS.STATUS);
             this.client.subscribe(CONFIG.TOPICS.OPCUA);
             this.client.subscribe(CONFIG.TOPICS.HEARTBEAT);
+            this.client.subscribe('@/kikes/bionegocios/BD1');
         });
 
         this.client.on('message', (topic, payload, packet) => {
@@ -492,7 +493,7 @@ const MQTT = {
     },
 
     handleMessage(topic, rawPayload, packet) {
-        const encryptedTopics = ['presion', 'setpoint', 'output', 'bomba'];
+        const encryptedTopics = ['presion', 'setpoint', 'output', 'bomba', 'bd1'];
         const isProcessData = encryptedTopics.some(t => topic.includes(t));
 
         let currentPayload = rawPayload;
@@ -654,6 +655,17 @@ const MQTT = {
                         State.pumps[idx].priority = { ...dataObj, value: parts[2] || '--' };
                     }
                 }
+            }
+        } else if (topic.includes('bionegocios/bd1')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                const gas = parseFloat(parts[0]) || 0;
+                const fluid = parseFloat(parts[1]) || 0;
+                
+                State.tanks.bio1.value = gas; 
+                State.tanks.bio1.fluid = fluid * 10; // Multiplier requested by user (x10)
+                State.tanks.bio1.lastUpdate = now;
+                UI.updateTanks();
             }
         }
     }
