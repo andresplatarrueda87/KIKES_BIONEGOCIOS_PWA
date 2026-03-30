@@ -63,20 +63,10 @@ const State = {
         bio1: { value: 0, fluid: 0, temp: 0, lastUpdate: 0, motors: [] },
         bio2: { value: 0, fluid: 0, temp: 0, lastUpdate: 0, motors: [] }
     },
-    storage: { value: 0, lastUpdate: 0, motors: [] },
-    whirlpool: { value: 0, lastUpdate: 0 },
+    storage: { value: 0, lastUpdate: 0, motors: [], diagnostic: { timestamp: '', isRetained: false } },
+    whirlpool: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    tanque25m: { value: 0, motor: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     lastHeartbeat: 0,
-    tags: {
-        pressure: { value: '--', timestamp: '', isRetained: false },
-        setpoint: { value: '--', timestamp: '', isRetained: false },
-        output: { value: '--', timestamp: '', isRetained: false }
-    },
-    pumps: Array(5).fill(null).map((_, i) => ({
-        id: i + 1,
-        status: { value: '--', timestamp: '', isRetained: false },
-        frequency: { value: '--', timestamp: '', isRetained: false },
-        priority: { value: '--', timestamp: '', isRetained: false }
-    })),
     showDiagnostics: false,
     notificationsEnabled: false,
     lastAlarmStates: {}
@@ -135,7 +125,6 @@ const Notifications = {
 // --- UI Engine ---
 const UI = {
     init() {
-        this.renderPumps();
         this.updateStatus();
         this.setupEventListeners();
         this.loadSettings();
@@ -152,25 +141,6 @@ const UI = {
         document.getElementById('chk-notifications').checked = notify;
     },
 
-    renderPumps() {
-        const container = document.getElementById('pumps-container');
-        container.innerHTML = State.pumps.map(pump => `
-            <section class="card pump-card" id="pump-${pump.id}">
-                <div class="pump-icon-box">
-                    <img src="images/pump_gray.png" class="pump-img" id="img-pump-${pump.id}">
-                </div>
-                <div class="pump-info">
-                    <h4>BOMBA ${pump.id}</h4>
-                    <span class="pump-status" id="status-pump-${pump.id}">OFFLINE</span>
-                    <span class="pump-freq" id="freq-pump-${pump.id}">-- Hz</span>
-                </div>
-                <div class="pump-priority">
-                    <span class="label">PRIORIDAD</span>
-                    <span class="prio-badge" id="prio-pump-${pump.id}">--</span>
-                </div>
-            </section>
-        `).join('');
-    },
 
     updateStatus() {
         const indicator = document.getElementById('status-indicator');
@@ -247,39 +217,7 @@ const UI = {
     },
 
     updateDashboard() {
-        const pTag = State.tags.pressure;
-        document.getElementById('txt-pressure').innerText = this.formatVal(pTag.value);
-        document.getElementById('txt-setpoint').innerText = this.formatVal(State.tags.setpoint.value);
-
-        const outEl = document.getElementById('txt-output');
-        if (outEl) outEl.innerText = this.formatVal(State.tags.output.value) + ' %';
-
         this.updateTanks();
-
-        const alarm = document.getElementById('pressure-alarm');
-        const pVal = parseFloat(pTag.value);
-        if (!isNaN(pVal) && pVal > 80) alarm.classList.remove('hidden');
-        else alarm.classList.add('hidden');
-
-        // Handle Pressure Diagnostics
-        this.updateDiagnostics('pressure-diag', 'kikes/gw/presion', pTag);
-
-        State.pumps.forEach(pump => {
-            const statusEl = document.getElementById('status-pump-' + pump.id);
-            const freqEl = document.getElementById('freq-pump-' + pump.id);
-            const prioEl = document.getElementById('prio-pump-' + pump.id);
-            const imgEl = document.getElementById('img-pump-' + pump.id);
-
-            const sVal = pump.status.value;
-            statusEl.innerText = this.getPumpStatusText(sVal);
-            statusEl.className = 'pump-status ' + this.getPumpStatusClass(sVal);
-            freqEl.innerText = this.formatVal(pump.frequency.value) + ' Hz';
-            prioEl.innerText = pump.priority.value;
-            imgEl.src = this.getPumpIcon(sVal, pump.id);
-
-            // Handle Pump Diagnostics
-            this.updateDiagnostics(`pump-${pump.id}-diag`, `kikes/gw/bomba${pump.id}`, pump.status);
-        });
     },
 
     updateTanks() {
@@ -305,6 +243,11 @@ const UI = {
 
         this.updateStorage();
         this.updateMotors();
+        this.updateTanque25m();
+
+        // Diagnostics
+        this.updateDiagnostics('bio1-diag', '@/kikes/bionegocios/BD1', State.tanks.bio1.diagnostic || { value: '', timestamp: '', isRetained: false });
+        this.updateDiagnostics('bio2-diag', '@/kikes/bionegocios/BD2', State.tanks.bio2.diagnostic || { value: '', timestamp: '', isRetained: false });
     },
 
     updateMotors() {
@@ -363,6 +306,9 @@ const UI = {
         });
 
         this.updateWhirlpool();
+
+        // Diagnostics
+        this.updateDiagnostics('storage-diag', '@/kikes/bionegocios/PreStorage', State.storage.diagnostic);
     },
 
     updateWhirlpool() {
@@ -372,84 +318,97 @@ const UI = {
 
         if (topEl) topEl.innerText = this.formatVal(w.value);
         if (barEl) barEl.style.height = Math.min(100, Math.max(0, w.value)) + '%';
+
+        // Diagnostics
+        this.updateDiagnostics('whirlpool-diag', '@/kikes/bionegocios/Whirlpool', State.whirlpool.diagnostic);
+    },
+
+    updateTanque25m() {
+        const t = State.tanque25m;
+        const topEl = document.getElementById('txt-tanque25m-top');
+        const barEl = document.getElementById('tanque25m-bar');
+
+        if (topEl) topEl.innerText = this.formatVal(t.value);
+        if (barEl) barEl.style.height = Math.min(100, Math.max(0, t.value)) + '%';
+
+        const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
+        const img = document.getElementById('img-m25');
+        if (img) {
+            const on = isOn(t.motor);
+            img.src = on ? 'images/Motor_On.png' : 'images/Motor_Off.png';
+            img.className = 'motor-img' + (on ? ' on' : '');
+        }
+
+        // Diagnostics
+        this.updateDiagnostics('tanque25m-diag', '@/kikes/bionegocios/Tanque25', t.diagnostic);
     },
 
     updateDiagnostics(containerId, topic, dataObj) {
         let container = document.getElementById(containerId);
-        if (!State.showDiagnostics) {
-            if (container) container.classList.add('hidden');
-            return;
-        }
 
         if (!container) {
-            // Create container if missing (inject before the card or inside)
-            const target = document.getElementById(containerId.replace('-diag', '')) ||
-                document.querySelector(containerId.includes('pressure') ? '.pressure-card' : `#pump-${containerId.match(/\d+/)[0]}`);
+            const target = document.getElementById(containerId.replace('-diag', ''));
+            if (!target) return;
 
             container = document.createElement('div');
             container.id = containerId;
             container.className = 'diagnostic-badge-root';
-            target.parentNode.insertBefore(container, target);
+            target.prepend(container);
+        }
+
+        // Determine diagnostic state
+        let badgeClass, badgeText;
+        const now = Date.now();
+        const isStale = dataObj.receivedAt ? (now - dataObj.receivedAt > 60000) : false;
+
+        if (!dataObj.timestamp) {
+            // No timestamp = never received data
+            badgeClass = 'diag-offline';
+            badgeText = '⊘ OFFLINE';
+        } else if (dataObj.isRetained || !State.isGatewayOnline || !State.isPlcConnected || isStale) {
+            badgeClass = 'diag-retained';
+            badgeText = '⚠ RETENIDO';
+        } else {
+            badgeClass = 'diag-live';
+            badgeText = '● LIVE';
+        }
+
+        const isHealthy = badgeClass === 'diag-live';
+        const showFull = State.showDiagnostics;
+        const showMinimal = !showFull && !isHealthy;
+
+        // Hide entirely if diagnostics are off AND the topic is perfectly healthy 'LIVE'
+        if (!showFull && isHealthy) {
+            container.classList.add('hidden');
+            return;
         }
 
         container.classList.remove('hidden');
 
-        // Logical state: If Gateway is offline, even direct data is effectively "retained" (last known)
-        const effectiveRetained = dataObj.isRetained || !State.isGatewayOnline || !State.isPlcConnected;
+        if (showFull) {
+            container.className = 'diagnostic-badge-root';
+            // Localize timestamp
+            let timeDisplay = '';
+            if (dataObj.timestamp) {
+                try {
+                    const date = new Date(dataObj.timestamp);
+                    timeDisplay = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                } catch (e) { timeDisplay = dataObj.timestamp; }
+            }
 
-        const badgeClass = effectiveRetained ? 'diag-retained' : 'diag-live';
-        const badgeText = effectiveRetained ? '⚠ RETENIDO' : '● LIVE';
-
-        // Optional: Localize timestamp
-        let timeDisplay = '';
-        if (dataObj.timestamp) {
-            try {
-                const date = new Date(dataObj.timestamp);
-                timeDisplay = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            } catch (e) { timeDisplay = dataObj.timestamp; }
+            container.innerHTML = `
+                <div class="diag-topic">${topic}</div>
+                <div class="diag-meta">
+                    <span class="diag-status ${badgeClass}">${badgeText}</span>
+                    ${timeDisplay ? `<span class="diag-time">🕒 ${timeDisplay}</span>` : ''}
+                </div>
+            `;
+        } else if (showMinimal) {
+            container.className = 'diagnostic-badge-root minimal-diag';
+            container.innerHTML = `<span class="diag-status ${badgeClass}">${badgeText}</span>`;
         }
-
-        container.innerHTML = `
-            <div class="diag-topic">${topic}</div>
-            <div class="diag-meta">
-                <span class="diag-status ${badgeClass}">${badgeText}</span>
-                ${timeDisplay ? `<span class="diag-time">🕒 ${timeDisplay}</span>` : ''}
-            </div>
-        `;
     },
 
-    getPumpStatusText(val) {
-        const s = parseInt(val);
-        if (s === 1) return 'RUNNING';
-        if (s === 2) return 'FAULTED';
-        if (s === -1) return 'STARTING';
-        if (s === 0) return 'STOPPED';
-        return 'UNKNOWN';
-    },
-
-    getPumpStatusClass(val) {
-        const s = parseInt(val);
-        if (s === 1) return 'status-running';
-        if (s === 2) return 'status-faulted';
-        if (s === -1) return 'status-starting';
-        return 'status-stopped';
-    },
-
-    getPumpIcon(val, pumpId) {
-        // Special Case: Check if local photo exists (Manual config for now)
-        const realPhotos = {
-            // '1': 'images/motor_bomba_1.jpg', 
-            // '2': 'images/motor_bomba_2.jpg'
-        };
-
-        if (realPhotos[pumpId]) return realPhotos[pumpId];
-
-        const s = parseInt(val);
-        if (s === 1) return 'images/pump_green.png';
-        if (s === 2) return 'images/pump_red.png';
-        if (s === -1) return 'images/pump_yellow.png';
-        return 'images/pump_gray.png';
-    },
 
     setupEventListeners() {
         document.getElementById('btn-settings').onclick = () => document.getElementById('settings-panel').classList.remove('hidden');
@@ -534,6 +493,7 @@ const MQTT = {
             this.client.subscribe('@/kikes/bionegocios/BD2/Motors');
             this.client.subscribe('@/kikes/bionegocios/PreStorage');
             this.client.subscribe('@/kikes/bionegocios/Whirlpool');
+            this.client.subscribe('@/kikes/bionegocios/Tanque25');
         });
 
         this.client.on('message', (topic, payload, packet) => {
@@ -562,7 +522,7 @@ const MQTT = {
     },
 
     handleMessage(topic, rawPayload, packet) {
-        const encryptedTopics = ['presion', 'setpoint', 'output', 'bomba', 'bd1'];
+        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25'];
         const isProcessData = encryptedTopics.some(t => topic.includes(t));
 
         let currentPayload = rawPayload;
@@ -585,69 +545,19 @@ const MQTT = {
             }
         } catch (e) { }
 
-        const dataObj = { value: finalValue, timestamp: msgTimestamp, isRetained: isRetained };
+        const dataObj = { 
+            value: finalValue, 
+            timestamp: msgTimestamp, 
+            isRetained: isRetained,
+            receivedAt: Date.now() 
+        };
         this.processData(topic.toLowerCase(), dataObj);
         this.handleAlarms(topic.toLowerCase(), finalValue, isRetained);
         UI.updateDashboard();
     },
 
     handleAlarms(topic, payload, isRetained) {
-        if (!State.notificationsEnabled) return;
-        if (isRetained) return; // No notificar por datos antiguos (históricos)
-
-        const valueStr = String(payload);
-        const now = Date.now();
-
-        // Tank Levels
-        if (topic.includes('bio1/nivel')) {
-            State.tanks.bio1.value = parseFloat(valueStr) || 0;
-            State.tanks.bio1.lastUpdate = now;
-            UI.updateTanks();
-            return;
-        }
-        if (topic.includes('bio2/nivel')) {
-            State.tanks.bio2.value = parseFloat(valueStr) || 0;
-            State.tanks.bio2.lastUpdate = now;
-            UI.updateTanks();
-            return;
-        }
-        if (topic.includes('storage/nivel')) {
-            State.storage.value = parseFloat(valueStr) || 0;
-            State.storage.lastUpdate = now;
-            UI.updateStorage();
-            return;
-        }
-
-        // Alertas de Presión
-        if (topic.includes('presion')) {
-            const pressurePart = valueStr.includes('|') ? valueStr.split('|')[0] : valueStr;
-            const val = parseFloat(pressurePart);
-            if (!isNaN(val)) {
-                const isHigh = val > 80;
-                const wasHigh = State.lastAlarmStates['pressure_high'];
-                if (isHigh && !wasHigh) {
-                    Notifications.show('¡Alerta de Presión!', `La presión ha subido a ${val.toFixed(1)} PSI`);
-                }
-                State.lastAlarmStates['pressure_high'] = isHigh;
-            }
-        }
-
-        // Alertas de Bombas
-        if (topic.includes('bomba')) {
-            const match = topic.match(/bomba.*?(\d+)/);
-            if (match) {
-                const id = match[1];
-                const statusPart = valueStr.includes('|') ? valueStr.split('|')[0] : valueStr;
-                const status = parseInt(statusPart);
-                const lastStatus = State.lastAlarmStates['pump_' + id];
-
-                if (status !== lastStatus) {
-                    if (status === 0) Notifications.show('Aviso de Planta', `BOMBA ${id} se ha DETENIDO`);
-                    if (status === 2) Notifications.show('¡FALLA CRÍTICA!', `BOMBA ${id} está en ESTADO DE FALLA`);
-                    State.lastAlarmStates['pump_' + id] = status;
-                }
-            }
-        }
+        // Reserved for future tank level alarms
     },
 
     processData(topic, dataObj) {
@@ -689,6 +599,7 @@ const MQTT = {
                 if (State.isGatewayOnline) State.lastHeartbeat = now;
             }
             UI.updateStatus();
+            return; // Status handled, don't process as data
         } else if (topic.endsWith('kikes/gw/bionegocios/status/connection')) {
             try {
                 // Consolidated status: "online|offline|online"
@@ -700,32 +611,11 @@ const MQTT = {
                 State.isOpcUaConnected = payload.includes('online');
             }
             UI.updateStatus();
+            return; // Status handled, don't process as data
         }
 
         // Process data
-        if (topic.includes('presion')) {
-            if (payload.includes('|')) {
-                const parts = payload.split('|');
-                State.tags.pressure = { ...dataObj, value: parts[0] };
-                State.tags.setpoint = { ...dataObj, value: parts[1] || '--' };
-                State.tags.output = { ...dataObj, value: parts[2] || '--' };
-            } else {
-                State.tags.pressure = dataObj;
-            }
-        } else if (topic.includes('bomba')) {
-            const match = topic.match(/bomba.*?(\d+)/);
-            if (match) {
-                const idx = parseInt(match[1]) - 1;
-                if (idx >= 0 && idx < 5) {
-                    if (payload.includes('|')) {
-                        const parts = payload.split('|');
-                        State.pumps[idx].status = { ...dataObj, value: parts[0] };
-                        State.pumps[idx].frequency = { ...dataObj, value: parts[1] };
-                        State.pumps[idx].priority = { ...dataObj, value: parts[2] || '--' };
-                    }
-                }
-            }
-        } else if (topic.includes('bionegocios/bd1/motors')) {
+        if (topic.includes('bionegocios/bd1/motors')) {
             if (payload.includes('|')) {
                 State.tanks.bio1.motors = payload.split('|');
                 UI.updateTanks();
@@ -742,6 +632,7 @@ const MQTT = {
                 State.tanks.bio1.fluid = parseFloat(parts[1]) || 0; 
                 State.tanks.bio1.temp = parseFloat(parts[2]) || 0;
                 State.tanks.bio1.lastUpdate = now;
+                State.tanks.bio1.diagnostic = dataObj;
                 UI.updateTanks();
             }
         } else if (topic.includes('bionegocios/bd2')) {
@@ -751,6 +642,7 @@ const MQTT = {
                 State.tanks.bio2.fluid = parseFloat(parts[1]) || 0; 
                 State.tanks.bio2.temp = parseFloat(parts[2]) || 0;
                 State.tanks.bio2.lastUpdate = now;
+                State.tanks.bio2.diagnostic = dataObj;
                 UI.updateTanks();
             }
         } else if (topic.includes('bionegocios/prestorage')) {
@@ -759,12 +651,23 @@ const MQTT = {
                 State.storage.value = parseFloat(parts[0]) || 0;
                 State.storage.motors = parts; // [Level, M11, M17]
                 State.storage.lastUpdate = now;
+                State.storage.diagnostic = dataObj;
                 UI.updateStorage();
             }
         } else if (topic.includes('bionegocios/whirlpool')) {
             State.whirlpool.value = parseFloat(payload) || 0;
             State.whirlpool.lastUpdate = now;
+            State.whirlpool.diagnostic = dataObj;
             UI.updateWhirlpool();
+        } else if (topic.includes('bionegocios/tanque25')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                State.tanque25m.value = parseFloat(parts[0]) || 0;
+                State.tanque25m.motor = parts[1];
+                State.tanque25m.lastUpdate = now;
+                State.tanque25m.diagnostic = dataObj;
+                UI.updateTanque25m();
+            }
         }
     }
 };
@@ -772,12 +675,17 @@ const MQTT = {
 // --- Watchdog ---
 setInterval(() => {
     const now = Date.now();
-    // Watchdog: If no heartbeat in 25s, mark gateway and PLC as offline
-    if (State.isGatewayOnline && (now - State.lastHeartbeat > 25000)) {
+    // Watchdog: If no heartbeat in 60s, mark gateway and PLC as offline
+    if (State.isGatewayOnline && (now - State.lastHeartbeat > 60000)) {
         console.warn('[Watchdog] Heartbeat lost. Gateway marked as offline.');
         State.isGatewayOnline = false;
         State.isPlcConnected = false;
         UI.updateStatus();
+    }
+    
+    // Refresh diagnostics UI to visually show "RETENIDO" if data becomes stale
+    if (State.showDiagnostics) {
+        UI.updateDashboard();
     }
 }, 5000);
 

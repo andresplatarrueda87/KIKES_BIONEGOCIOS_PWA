@@ -73,7 +73,7 @@
             <div class="dashboard-grid">
                 <!-- Tanks Section -->
                 <div class="tanks-grid">
-                    <section class="tank-card">
+                    <section class="tank-card" id="bio1">
                         <div class="tank-header">
                             <h4>BIO 1</h4>
                         </div>
@@ -109,7 +109,7 @@
                             </div>
                         </div>
                     </section>
-                    <section class="tank-card">
+                    <section class="tank-card" id="bio2">
                         <div class="tank-header">
                             <h4>BIO 2</h4>
                         </div>
@@ -198,7 +198,7 @@
                 <!-- Storage & Whirlpool Row -->
                 <div class="tanks-grid">
                     <!-- Whirlpool Card (left) -->
-                    <section class="card storage-card" style="margin-bottom: 0;">
+                    <section class="card storage-card" id="whirlpool" style="margin-bottom: 0; min-width: 0;">
                         <div class="tank-header">
                             <h4>WHIRLPOOL</h4>
                         </div>
@@ -209,18 +209,18 @@
                             </div>
                             <div class="value-label-green">NIVEL</div>
                         </div>
-                        <div class="storage-body" style="gap: 0.8rem;">
-                            <div class="storage-img-container" style="width: 80px; height: 60px;">
+                        <div class="storage-body" style="gap: 0.8rem; justify-content: center;">
+                            <div class="storage-img-container" style="width: 70px; height: 50px;">
                                 <img src="images/Whirlpool.png" alt="Whirlpool" class="storage-img" style="object-fit: contain;">
                             </div>
-                            <div class="storage-bar-container" style="height: 60px;">
+                            <div class="storage-bar-container" style="height: 55px; width: 12px;">
                                 <div id="whirl-bar" class="storage-bar"></div>
                             </div>
                         </div>
                     </section>
 
                     <!-- Main Storage Card (right) -->
-                    <section class="card storage-card" style="margin-bottom: 0;">
+                    <section class="card storage-card" id="storage" style="margin-bottom: 0; min-width: 0;">
                         <div class="tank-header">
                             <h4>PRE-STORAGE</h4>
                         </div>
@@ -231,61 +231,59 @@
                             </div>
                             <div class="value-label-green">NIVEL</div>
                         </div>
-                        <div class="storage-body" style="gap: 0.5rem;">
-                            <div class="storage-img-container" style="width: 80px; height: 40px;">
+                        <div class="storage-body" style="gap: 0.8rem; justify-content: center;">
+                            <div class="storage-img-container" style="width: 70px; height: 35px;">
                                 <img src="images/Storage facility 7.png" alt="Storage" class="storage-img">
                             </div>
-                            <div class="storage-bar-container" style="height: 60px;">
+                            <div class="storage-bar-container" style="height: 55px; width: 12px;">
                                 <div id="storage-bar" class="storage-bar"></div>
                             </div>
                             
                             <div class="motor-grid" id="grid-motors-storage" style="flex-direction: column; gap: 4px; width: auto; margin-left: 5px;">
                                 <div class="motor-item">
-                                    <img id="img-m11" src="images/Motor_Off.png" class="motor-img" style="width: 20px !important; height: 20px !important;">
-                                    <span class="motor-label" style="font-size: 0.45rem;">M11</span>
+                                    <img id="img-m11" src="images/Motor_Off.png" class="motor-img" style="width: 18px !important; height: 18px !important;">
+                                    <span class="motor-label" style="font-size: 0.42rem;">M11</span>
                                 </div>
                                 <div class="motor-item">
-                                    <img id="img-m17" src="images/Motor_Off.png" class="motor-img" style="width: 20px !important; height: 20px !important;">
-                                    <span class="motor-label" style="font-size: 0.45rem;">M17</span>
+                                    <img id="img-m17" src="images/Motor_Off.png" class="motor-img" style="width: 18px !important; height: 18px !important;">
+                                    <span class="motor-label" style="font-size: 0.42rem;">M17</span>
                                 </div>
                             </div>
                         </div>
                     </section>
                 </div>
 
-                <!-- Pressure Card -->
-                <section class="card pressure-card">
-                    <div class="card-header">
-                        <h2>PRESIÓN</h2>
-                        <div id="pressure-alarm" class="alarm-badge hidden">⚠️</div>
-                    </div>
-                    <div class="pressure-row">
-                        <div class="pressure-item">
-                            <span class="label">ACTUAL</span>
-                            <div class="val-box">
-                                <span id="txt-pressure">--</span>
-                                <span class="unit">PSI</span>
+                <!-- Tanque 25m Row -->
+                <div class="tanks-grid" style="grid-template-columns: 1fr;">
+                    <section class="card storage-card" id="tanque25m" style="margin-bottom: 0; min-width: 0;">
+                        <div class="tank-header">
+                            <h4>TANQUE 25 m³</h4>
+                        </div>
+                        <div class="value-item" style="margin-bottom: 0.2rem;">
+                            <div class="val-unit-row">
+                                <span id="txt-tanque25m-top" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                <span class="tank-unit" style="font-size: 0.9rem;">%</span>
+                            </div>
+                            <div class="value-label-green">NIVEL</div>
+                        </div>
+                        <div class="storage-body" style="gap: 1.5rem; justify-content: center;">
+                            <div class="storage-img-container" style="width: 70px; height: 50px;">
+                                <img src="images/Tank 25m.png" alt="Tanque 25m" class="storage-img" style="object-fit: contain;">
+                            </div>
+                            <div class="storage-bar-container" style="height: 55px; width: 12px;">
+                                <div id="tanque25m-bar" class="storage-bar"></div>
+                            </div>
+                            
+                            <div class="motor-grid" id="grid-motors-25m" style="flex-direction: column; gap: 4px; width: auto; margin-left: 10px;">
+                                <div class="motor-item">
+                                    <img id="img-m25" src="images/Motor_Off.png" class="motor-img" style="width: 24px !important; height: 24px !important;">
+                                    <span class="motor-label" style="font-size: 0.5rem;">BOMBA</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="pressure-sep">|</div>
-                        <div class="pressure-item">
-                            <span class="label">SETPOINT</span>
-                            <div class="val-box">
-                                <span id="txt-setpoint">--</span>
-                                <span class="unit">PSI</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer-v2">
-                        <span class="label">SALIDA DE CONTROL:</span>
-                        <span id="txt-output" class="value">-- %</span>
-                    </div>
-                </section>
-
-                <!-- Pumps Section -->
-                <div id="pumps-container" class="pumps-list">
-                    <!-- Pumps will be injected here -->
+                    </section>
                 </div>
+
             </div>
         </main>
 

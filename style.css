@@ -500,9 +500,14 @@ input:checked+.slider:before {
 /* Tanks Section */
 .tanks-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.35rem;
     margin-bottom: 0.35rem;
+    width: 100%;
+}
+
+.tanks-grid > * {
+    min-width: 0; /* Prevents overflow pushing grid columns */
 }
 
 /* Motor Grid Layout */
@@ -736,4 +741,74 @@ input:checked+.slider:before {
     font-size: 0.7rem;
     color: var(--accent-blue);
     font-weight: 600;
+}
+
+/* Diagnostic Styles */
+.diagnostic-badge-root {
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    margin: -1rem -1rem 0.6rem -1rem; /* Aligns flush with card edges */
+    font-size: 0.64rem;
+    color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-radius: 12px 12px 0 0; /* Match card radius */
+}
+
+/* Minimal mode overrides (when Diagnostics are OFF but status is not LIVE) */
+.diagnostic-badge-root.minimal-diag {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    backdrop-filter: none;
+    z-index: 10;
+}
+
+.diag-topic {
+    font-family: 'Roboto Mono', monospace;
+    opacity: 0.9;
+    word-break: break-all;
+    line-height: 1.2;
+}
+
+.diag-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.diag-status {
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.6rem;
+}
+
+.diag-live {
+    color: var(--accent-green);
+    background: rgba(63, 185, 80, 0.15);
+}
+
+.diag-retained {
+    color: var(--accent-orange);
+    background: rgba(210, 153, 34, 0.15);
+}
+
+.diag-offline {
+    color: var(--accent-red);
+    background: rgba(248, 81, 73, 0.15);
+}
+
+.diag-time {
+    font-family: var(--font-main);
+    opacity: 0.6;
+    font-size: 0.6rem;
 }
