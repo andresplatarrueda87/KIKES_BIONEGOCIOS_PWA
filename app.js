@@ -60,10 +60,11 @@ const State = {
     plcStatuses: ['offline', 'offline', 'offline'],
     isPlcConnected: false,
     tanks: {
-        bio1: { value: 0, fluid: 0, lastUpdate: 0 },
-        bio2: { value: 0, lastUpdate: 0 }
+        bio1: { value: 0, fluid: 0, temp: 0, lastUpdate: 0, motors: [] },
+        bio2: { value: 0, fluid: 0, temp: 0, lastUpdate: 0, motors: [] }
     },
-    storage: { value: 0, lastUpdate: 0 },
+    storage: { value: 0, lastUpdate: 0, motors: [] },
+    whirlpool: { value: 0, lastUpdate: 0 },
     lastHeartbeat: 0,
     tags: {
         pressure: { value: '--', timestamp: '', isRetained: false },
@@ -285,6 +286,9 @@ const UI = {
         // BIO 1
         const t1 = State.tanks.bio1;
         document.getElementById('txt-tank-top-1').innerText = this.formatVal(t1.value);
+        if (document.getElementById('txt-temp-1')) {
+            document.getElementById('txt-temp-1').innerText = this.formatVal(t1.temp);
+        }
         document.getElementById('txt-tank-1').innerText = this.formatVal(t1.fluid);
         const bar1 = document.getElementById('tank-bar-1');
         if (bar1) bar1.style.height = Math.min(100, Math.max(0, t1.fluid)) + '%';
@@ -292,22 +296,82 @@ const UI = {
         // BIO 2
         const t2 = State.tanks.bio2;
         document.getElementById('txt-tank-top-2').innerText = this.formatVal(t2.value);
-        document.getElementById('txt-tank-2').innerText = '--'; // Placeholder for Volume
+        if (document.getElementById('txt-temp-2')) {
+            document.getElementById('txt-temp-2').innerText = this.formatVal(t2.temp);
+        }
+        document.getElementById('txt-tank-2').innerText = this.formatVal(t2.fluid);
         const bar2 = document.getElementById('tank-bar-2');
-        if (bar2) bar2.style.height = Math.min(100, Math.max(0, t2.value)) + '%';
+        if (bar2) bar2.style.height = Math.min(100, Math.max(0, t2.fluid)) + '%';
 
         this.updateStorage();
+        this.updateMotors();
+    },
+
+    updateMotors() {
+        // Accept '1', 'true', 'True', true as ON
+        const isOn = s => s === 1 || s === '1' || String(s).toLowerCase() === 'true';
+
+        // BIO 1 (AGT1-5)
+        const b1 = State.tanks.bio1.motors;
+        if (b1 && b1.length > 0) {
+            b1.forEach((s, i) => {
+                const img = document.getElementById(`img-agt-${i + 1}`);
+                if (img) {
+                    const on = isOn(s);
+                    img.src = on ? 'images/Motor_On.png' : 'images/Motor_Off.png';
+                    img.className = 'motor-img' + (on ? ' on' : '');
+                }
+            });
+        }
+
+        // BIO 2 (M1-4)
+        const b2 = State.tanks.bio2.motors;
+        if (b2 && b2.length > 0) {
+            b2.forEach((s, i) => {
+                const img = document.getElementById(`img-m-${i + 1}`);
+                if (img) {
+                    const on = isOn(s);
+                    img.src = on ? 'images/Motor_On.png' : 'images/Motor_Off.png';
+                    img.className = 'motor-img' + (on ? ' on' : '');
+                }
+            });
+        }
     },
 
     updateStorage() {
         const s = State.storage;
         const topEl = document.getElementById('txt-storage-top');
-        const valEl = document.getElementById('txt-storage-val');
         const barEl = document.getElementById('storage-bar');
 
         if (topEl) topEl.innerText = this.formatVal(s.value);
-        if (valEl) valEl.innerText = '--'; // Placeholder for Volume m3
         if (barEl) barEl.style.height = Math.min(100, Math.max(0, s.value)) + '%';
+
+        // Update Pre-Storage Motors (M11, M17)
+        const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
+        const motors = [
+            { id: 'm11', val: s.motors[1] },
+            { id: 'm17', val: s.motors[2] }
+        ];
+
+        motors.forEach(m => {
+            const img = document.getElementById(`img-${m.id}`);
+            if (img) {
+                const on = isOn(m.val);
+                img.src = on ? 'images/Motor_On.png' : 'images/Motor_Off.png';
+                img.className = 'motor-img' + (on ? ' on' : '');
+            }
+        });
+
+        this.updateWhirlpool();
+    },
+
+    updateWhirlpool() {
+        const w = State.whirlpool;
+        const topEl = document.getElementById('txt-whirl-top');
+        const barEl = document.getElementById('whirl-bar');
+
+        if (topEl) topEl.innerText = this.formatVal(w.value);
+        if (barEl) barEl.style.height = Math.min(100, Math.max(0, w.value)) + '%';
     },
 
     updateDiagnostics(containerId, topic, dataObj) {
@@ -465,6 +529,11 @@ const MQTT = {
             this.client.subscribe(CONFIG.TOPICS.OPCUA);
             this.client.subscribe(CONFIG.TOPICS.HEARTBEAT);
             this.client.subscribe('@/kikes/bionegocios/BD1');
+            this.client.subscribe('@/kikes/bionegocios/BD2');
+            this.client.subscribe('@/kikes/bionegocios/BD1/Motors');
+            this.client.subscribe('@/kikes/bionegocios/BD2/Motors');
+            this.client.subscribe('@/kikes/bionegocios/PreStorage');
+            this.client.subscribe('@/kikes/bionegocios/Whirlpool');
         });
 
         this.client.on('message', (topic, payload, packet) => {
@@ -656,17 +725,46 @@ const MQTT = {
                     }
                 }
             }
+        } else if (topic.includes('bionegocios/bd1/motors')) {
+            if (payload.includes('|')) {
+                State.tanks.bio1.motors = payload.split('|');
+                UI.updateTanks();
+            }
+        } else if (topic.includes('bionegocios/bd2/motors')) {
+            if (payload.includes('|')) {
+                State.tanks.bio2.motors = payload.split('|');
+                UI.updateTanks();
+            }
         } else if (topic.includes('bionegocios/bd1')) {
             if (payload.includes('|')) {
                 const parts = payload.split('|');
-                const gas = parseFloat(parts[0]) || 0;
-                const fluid = parseFloat(parts[1]) || 0;
-                
-                State.tanks.bio1.value = gas; 
-                State.tanks.bio1.fluid = fluid * 10; // Multiplier requested by user (x10)
+                State.tanks.bio1.value = parseFloat(parts[0]) || 0; 
+                State.tanks.bio1.fluid = parseFloat(parts[1]) || 0; 
+                State.tanks.bio1.temp = parseFloat(parts[2]) || 0;
                 State.tanks.bio1.lastUpdate = now;
                 UI.updateTanks();
             }
+        } else if (topic.includes('bionegocios/bd2')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                State.tanks.bio2.value = parseFloat(parts[0]) || 0; 
+                State.tanks.bio2.fluid = parseFloat(parts[1]) || 0; 
+                State.tanks.bio2.temp = parseFloat(parts[2]) || 0;
+                State.tanks.bio2.lastUpdate = now;
+                UI.updateTanks();
+            }
+        } else if (topic.includes('bionegocios/prestorage')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                State.storage.value = parseFloat(parts[0]) || 0;
+                State.storage.motors = parts; // [Level, M11, M17]
+                State.storage.lastUpdate = now;
+                UI.updateStorage();
+            }
+        } else if (topic.includes('bionegocios/whirlpool')) {
+            State.whirlpool.value = parseFloat(payload) || 0;
+            State.whirlpool.lastUpdate = now;
+            UI.updateWhirlpool();
         }
     }
 };
