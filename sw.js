@@ -1,4 +1,4 @@
-const CACHE_NAME = 'egipto-agua-v2';
+const CACHE_NAME = 'kikes-bionegocios-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -9,8 +9,10 @@ const ASSETS = [
   './images/pump_red.png',
   './images/pump_yellow.png',
   './images/pump_gray.png',
+  './images/Covered dome tank 1.png',
+  './images/Storage facility 7.png',
   './Kikes_image_1.png',
-  './egipto_agua_pwa_icon.png',
+  './kikes_bionegocios_pwa_icon.png',
   'https://unpkg.com/mqtt/dist/mqtt.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap'
