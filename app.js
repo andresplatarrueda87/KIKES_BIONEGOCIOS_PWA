@@ -65,7 +65,8 @@ const State = {
     },
     storage: { value: 0, lastUpdate: 0, motors: [], diagnostic: { timestamp: '', isRetained: false } },
     whirlpool: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
-    tanque25m: { value: 0, motor: false, local: false, valvulas: [false, false], lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    tanque25m: { value: 0, motor: false, local: false, falla: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    valvulas25m: { v1: false, v1Op: false, v1Cl: false, v2: false, v2Op: false, v2Cl: false, diagnostic: { timestamp: '', isRetained: false } },
     alivio1: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     alivio2: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     lastHeartbeat: 0,
@@ -221,6 +222,7 @@ const UI = {
     updateDashboard() {
         this.updateTanks();
         this.updateAlivios();
+        this.updateValves25m();
     },
 
     updateTanks() {
@@ -302,9 +304,15 @@ const UI = {
         motors.forEach(m => {
             const img = document.getElementById(`img-${m.id}`);
             if (img) {
-                const on = isOn(m.val);
-                img.src = on ? 'images/Motor_On.png' : 'images/Motor_Off.png';
-                img.className = 'motor-img' + (on ? ' on' : '');
+                if (m.id === 'm17') {
+                    img.src = 'images/Motor_Fault.png';
+                    img.className = 'motor-img';
+                    img.style.filter = 'grayscale(0) opacity(1) drop-shadow(0 0 10px #f85149) brightness(1.2)';
+                } else {
+                    const on = isOn(m.val);
+                    img.src = on ? 'images/Motor_On.png' : 'images/Motor_Off.png';
+                    img.className = 'motor-img' + (on ? ' on' : '');
+                }
             }
         });
 
@@ -337,8 +345,7 @@ const UI = {
         const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
         const imgPump = document.getElementById('img-m25');
         const lblLocal = document.getElementById('lbl-m25-local');
-        const imgV1 = document.getElementById('img-v25-1');
-        const imgV2 = document.getElementById('img-v25-2');
+        const lblFalla = document.getElementById('lbl-m25-falla');
 
         if (imgPump) {
             const on = isOn(t.motor);
@@ -353,21 +360,45 @@ const UI = {
                 lblLocal.classList.add('hidden');
             }
         }
-
-        if (imgV1 && t.valvulas) {
-            const on = isOn(t.valvulas[0]);
-            imgV1.src = on ? 'images/Valvula_On.png' : 'images/Valvula_Off.png';
-            imgV1.className = 'motor-img' + (on ? ' on' : '');
-        }
-
-        if (imgV2 && t.valvulas) {
-            const on = isOn(t.valvulas[1]);
-            imgV2.src = on ? 'images/Valvula_On.png' : 'images/Valvula_Off.png';
-            imgV2.className = 'motor-img' + (on ? ' on' : '');
+        
+        if (lblFalla) {
+            if (isOn(t.falla)) {
+                lblFalla.classList.remove('hidden');
+            } else {
+                lblFalla.classList.add('hidden');
+            }
         }
 
         // Diagnostics
         this.updateDiagnostics('tanque25m-diag', '@/kikes/bionegocios/Tanque25', t.diagnostic, 0);
+    },
+
+    updateValves25m() {
+        const v = State.valvulas25m;
+        const imgV1 = document.getElementById('img-v25-1');
+        const imgV2 = document.getElementById('img-v25-2');
+
+        if (imgV1) {
+            imgV1.src = v.v1 ? 'images/Valvula_On.png' : 'images/Valvula_Off.png';
+            imgV1.className = 'motor-img' + (v.v1 ? ' on' : '');
+            
+            const ledOp = document.getElementById('led-v1-op');
+            const ledCl = document.getElementById('led-v1-cl');
+            if(ledOp) ledOp.style.backgroundColor = v.v1Op ? 'var(--accent-green)' : '#444';
+            if(ledCl) ledCl.style.backgroundColor = v.v1Cl ? 'var(--accent-green)' : '#444';
+        }
+
+        if (imgV2) {
+            imgV2.src = v.v2 ? 'images/Valvula_On.png' : 'images/Valvula_Off.png';
+            imgV2.className = 'motor-img' + (v.v2 ? ' on' : '');
+            
+            const ledOp = document.getElementById('led-v2-op');
+            const ledCl = document.getElementById('led-v2-cl');
+            if(ledOp) ledOp.style.backgroundColor = v.v2Op ? 'var(--accent-green)' : '#444';
+            if(ledCl) ledCl.style.backgroundColor = v.v2Cl ? 'var(--accent-green)' : '#444';
+        }
+
+        this.updateDiagnostics('valvulas25m-diag', '@/kikes/bionegocios/Tanque25/Valvulas', v.diagnostic, 1);
     },
 
     updateAlivios() {
@@ -454,7 +485,8 @@ const UI = {
             `;
         } else if (showMinimal) {
             container.className = 'diagnostic-badge-root minimal-diag';
-            container.innerHTML = `<span class="diag-status ${badgeClass}">${badgeText}</span>`;
+            const minimalText = badgeClass === 'diag-retained' ? '⚠' : (badgeClass === 'diag-offline' ? '⊘' : badgeText);
+            container.innerHTML = `<span class="diag-status ${badgeClass}">${minimalText}</span>`;
         }
     },
 
@@ -543,8 +575,10 @@ const MQTT = {
             this.client.subscribe('@/kikes/bionegocios/PreStorage');
             this.client.subscribe('@/kikes/bionegocios/Whirlpool');
             this.client.subscribe('@/kikes/bionegocios/Tanque25');
+            this.client.subscribe('@/kikes/bionegocios/Tanque25/Valvulas');
             this.client.subscribe('@/kikes/bionegocios/Alivio1');
             this.client.subscribe('@/kikes/bionegocios/Alivio2');
+            this.client.subscribe('kikes/gw/bionegocios/cmd/ping');
         });
 
         this.client.on('message', (topic, payload, packet) => {
@@ -710,13 +744,26 @@ const MQTT = {
             State.whirlpool.lastUpdate = now;
             State.whirlpool.diagnostic = dataObj;
             UI.updateWhirlpool();
+        } else if (topic.includes('bionegocios/tanque25/valvulas')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
+                State.valvulas25m.v1 = isOn(parts[0]);
+                State.valvulas25m.v1Op = isOn(parts[1]);
+                State.valvulas25m.v1Cl = isOn(parts[2]);
+                State.valvulas25m.v2 = isOn(parts[3]);
+                State.valvulas25m.v2Op = isOn(parts[4]);
+                State.valvulas25m.v2Cl = isOn(parts[5]);
+                State.valvulas25m.diagnostic = dataObj;
+                UI.updateValves25m();
+            }
         } else if (topic.includes('bionegocios/tanque25')) {
             if (payload.includes('|')) {
                 const parts = payload.split('|');
                 State.tanque25m.value = parseFloat(parts[0]) || 0;
                 State.tanque25m.motor = parts[1];
                 State.tanque25m.local = parts[2];
-                State.tanque25m.valvulas = [parts[3], parts[4]];
+                State.tanque25m.falla = parts[3];
                 State.tanque25m.lastUpdate = now;
                 State.tanque25m.diagnostic = dataObj;
                 UI.updateTanque25m();
@@ -731,6 +778,11 @@ const MQTT = {
             State.alivio2.lastUpdate = now;
             State.alivio2.diagnostic = dataObj;
             UI.updateAlivios();
+        } else if (topic.includes('kikes/gw/bionegocios/cmd/ping')) {
+            // Strategy 2: If we receive a ping, we must immediately assert we are active (if we are visible)
+            if (document.visibilityState === 'visible') {
+                this.publishActive(true);
+            }
         }
     }
 };

@@ -54,11 +54,11 @@
                 </div>
                 <div class="plc-status-container" id="plc-status-list">
                     <div class="plc-indicator">
-                        <span class="plc-label">PLC 1</span>
+                        <span class="plc-label">PLC BIO 1</span>
                         <div class="plc-status-dot" id="plc-dot-0"></div>
                     </div>
                     <div class="plc-indicator">
-                        <span class="plc-label">PLC 2</span>
+                        <span class="plc-label">PLC BIO 2</span>
                         <div class="plc-status-dot" id="plc-dot-1"></div>
                     </div>
                 </div>
@@ -74,7 +74,8 @@
                         </div>
                         <div class="value-item" style="margin-bottom: 0.5rem;">
                             <div class="val-unit-row">
-                                <span id="txt-tank-top-1" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                <span id="txt-tank-top-1" class="tank-level-top-val"
+                                    style="font-size: 1.6rem;">--</span>
                                 <span class="tank-unit" style="font-size: 0.9rem;">%</span>
                             </div>
                             <div class="value-label-green">BIOGAS</div>
@@ -110,7 +111,8 @@
                         </div>
                         <div class="value-item" style="margin-bottom: 0.5rem;">
                             <div class="val-unit-row">
-                                <span id="txt-tank-top-2" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                <span id="txt-tank-top-2" class="tank-level-top-val"
+                                    style="font-size: 1.6rem;">--</span>
                                 <span class="tank-unit" style="font-size: 0.9rem;">%</span>
                             </div>
                             <div class="value-label-green">BIOGAS</div>
@@ -142,7 +144,7 @@
                     </section>
 
                     <!-- Motors 1 (Independent Card) -->
-                    <section class="card motor-card">
+                    <section class="card motor-card" style="padding-top: 1.2rem !important; min-height: 65px;">
                         <div class="motor-grid" id="grid-motors-1">
                             <div class="motor-item" style="transform: translateY(-16px);">
                                 <img id="img-agt-1" src="images/Motor_Off.png" class="motor-img">
@@ -166,7 +168,7 @@
                             </div>
                         </div>
                     </section>
-                    
+
                     <!-- Motors 2 (Independent Card) -->
                     <section class="card motor-card">
                         <div class="motor-grid" id="grid-motors-2">
@@ -206,7 +208,8 @@
                         </div>
                         <div class="storage-body" style="gap: 0.8rem; justify-content: center;">
                             <div class="storage-img-container" style="width: 70px; height: 50px;">
-                                <img src="images/Whirlpool.png" alt="Whirlpool" class="storage-img" style="object-fit: contain;">
+                                <img src="images/Whirlpool.png" alt="Whirlpool" class="storage-img"
+                                    style="object-fit: contain;">
                             </div>
                             <div class="storage-bar-container" style="height: 55px; width: 12px;">
                                 <div id="whirl-bar" class="storage-bar"></div>
@@ -221,7 +224,8 @@
                         </div>
                         <div class="value-item" style="margin-bottom: 0.2rem;">
                             <div class="val-unit-row">
-                                <span id="txt-storage-top" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                <span id="txt-storage-top" class="tank-level-top-val"
+                                    style="font-size: 1.6rem;">--</span>
                                 <span class="tank-unit" style="font-size: 0.9rem;">%</span>
                             </div>
                             <div class="value-label-green">NIVEL</div>
@@ -233,14 +237,17 @@
                             <div class="storage-bar-container" style="height: 55px; width: 12px;">
                                 <div id="storage-bar" class="storage-bar"></div>
                             </div>
-                            
-                            <div class="motor-grid" id="grid-motors-storage" style="flex-direction: column; gap: 4px; width: auto; margin-left: 5px;">
+
+                            <div class="motor-grid" id="grid-motors-storage"
+                                style="flex-direction: column; gap: 4px; width: auto; margin-left: 5px;">
                                 <div class="motor-item">
-                                    <img id="img-m11" src="images/Motor_Off.png" class="motor-img" style="width: 18px !important; height: 18px !important;">
+                                    <img id="img-m11" src="images/Motor_Off.png" class="motor-img"
+                                        style="width: 18px !important; height: 18px !important;">
                                     <span class="motor-label" style="font-size: 0.42rem;">M11</span>
                                 </div>
                                 <div class="motor-item">
-                                    <img id="img-m17" src="images/Motor_Off.png" class="motor-img" style="width: 18px !important; height: 18px !important;">
+                                    <img id="img-m17" src="images/Motor_Off.png" class="motor-img"
+                                        style="width: 18px !important; height: 18px !important;">
                                     <span class="motor-label" style="font-size: 0.42rem;">M17</span>
                                 </div>
                             </div>
@@ -249,47 +256,83 @@
                 </div>
 
                 <!-- Tanque 25m Row -->
-                <div class="tanks-grid" style="grid-template-columns: 1fr;">
+                <div class="tanks-grid">
                     <section class="card storage-card" id="tanque25m" style="margin-bottom: 0; min-width: 0;">
                         <div class="tank-header">
-                            <h4>TANQUE 25 m³</h4>
+                            <h4 style="font-size: 0.75rem;">TANQUE 25 m³</h4>
                         </div>
                         <div class="value-item" style="margin-bottom: 0.2rem;">
                             <div class="val-unit-row">
-                                <span id="txt-tanque25m-top" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                <span id="txt-tanque25m-top" class="tank-level-top-val"
+                                    style="font-size: 1.6rem;">--</span>
                                 <span class="tank-unit" style="font-size: 0.9rem;">%</span>
                             </div>
                             <div class="value-label-green">NIVEL</div>
                         </div>
-                        <div class="storage-body" style="gap: 1.5rem; justify-content: center;">
-                            <div class="storage-img-container" style="width: 70px; height: 50px;">
-                                <img src="images/Tank 25m.png" alt="Tanque 25m" class="storage-img" style="object-fit: contain;">
+                        <div class="storage-body" style="gap: 1rem; justify-content: center;">
+                            <div class="storage-img-container" style="width: 50px; height: 50px;">
+                                <img src="images/Tank 25m.png" alt="Tanque 25m" class="storage-img"
+                                    style="object-fit: contain;">
                             </div>
                             <div class="storage-bar-container" style="height: 55px; width: 12px;">
                                 <div id="tanque25m-bar" class="storage-bar"></div>
                             </div>
-                            
-                            <div class="motor-grid" id="grid-motors-25m" style="flex-direction: column; gap: 6px; width: auto; margin-left: 10px;">
+                            <div class="motor-grid" id="grid-motors-25m"
+                                style="flex-direction: column; width: auto; margin-left: 5px;">
                                 <div class="motor-item" style="position: relative;">
-                                    <span id="lbl-m25-local" class="prio-badge hidden" style="position: absolute; top: -14px; font-size: 0.45rem; padding: 1px 4px; border-radius: 4px; left: 50%; transform: translateX(-50%);">LOCAL</span>
-                                    <img id="img-m25" src="images/pump_gray.png" class="motor-img" style="width: 26px !important; height: 26px !important;">
-                                    <span class="motor-label" style="font-size: 0.5rem;">BOMBA</span>
+                                    <span id="lbl-m25-local" class="prio-badge hidden"
+                                        style="position: absolute; top: -14px; font-size: 0.45rem; padding: 1px 4px; border-radius: 4px; left: 50%; transform: translateX(-50%); z-index: 10;">LOCAL</span>
+                                    <span id="lbl-m25-falla" class="prio-badge hidden"
+                                        style="position: absolute; bottom: -8px; font-size: 0.45rem; padding: 1px 4px; border-radius: 4px; left: 50%; transform: translateX(-50%); background: var(--accent-red); z-index: 10;">FALLA</span>
+                                    <img id="img-m25" src="images/pump_gray.png" class="motor-img"
+                                        style="width: 26px !important; height: 26px !important;">
+                                    <span class="motor-label" style="font-size: 0.5rem; margin-top: 4px;">BOMBA</span>
                                 </div>
-                                <div class="motor-grid" style="gap: 8px;">
-                                    <div class="motor-item">
-                                        <img id="img-v25-1" src="images/Valvula_Off.png" class="motor-img" style="width: 18px !important; height: 18px !important;">
-                                        <span class="motor-label" style="font-size: 0.45rem;">V1</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card storage-card" id="valvulas25m" style="margin-bottom: 0; min-width: 0;">
+                        <div class="tank-header">
+                            <h4 style="font-size: 0.75rem;">VÁLVULAS</h4>
+                        </div>
+                        <div class="storage-body" style="gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                            <div class="motor-grid" id="grid-valves-25m" style="gap: 10px;">
+                                <div class="motor-item" style="position: relative;">
+                                    <span class="motor-label" style="font-size: 0.5rem; margin-bottom: 4px;">V1</span>
+                                    <img id="img-v25-1" src="images/Valvula_Off.png" class="motor-img"
+                                        style="width: 32px !important; height: 32px !important;">
+                                    <div style="display: flex; gap: 4px; margin-top: 6px;">
+                                        <span id="led-v1-op" class="mini-dot-h" style="background-color: #444;"
+                                            title="Abierto"></span>
+                                        <span id="led-v1-cl" class="mini-dot-h" style="background-color: #444;"
+                                            title="Cerrado"></span>
                                     </div>
-                                    <div class="motor-item">
-                                        <img id="img-v25-2" src="images/Valvula_Off.png" class="motor-img" style="width: 18px !important; height: 18px !important;">
-                                        <span class="motor-label" style="font-size: 0.45rem;">V2</span>
+                                    <div style="display: flex; gap: 2px; margin-top: 2px;">
+                                        <span style="font-size: 0.4rem; color: #8b949e;">ABR</span>
+                                        <span style="font-size: 0.4rem; color: #8b949e;">CER</span>
+                                    </div>
+                                </div>
+                                <div class="motor-item" style="position: relative;">
+                                    <span class="motor-label" style="font-size: 0.5rem; margin-bottom: 4px;">V2</span>
+                                    <img id="img-v25-2" src="images/Valvula_Off.png" class="motor-img"
+                                        style="width: 32px !important; height: 32px !important;">
+                                    <div style="display: flex; gap: 4px; margin-top: 6px;">
+                                        <span id="led-v2-op" class="mini-dot-h" style="background-color: #444;"
+                                            title="Abierto"></span>
+                                        <span id="led-v2-cl" class="mini-dot-h" style="background-color: #444;"
+                                            title="Cerrado"></span>
+                                    </div>
+                                    <div style="display: flex; gap: 2px; margin-top: 2px;">
+                                        <span style="font-size: 0.4rem; color: #8b949e;">ABR</span>
+                                        <span style="font-size: 0.4rem; color: #8b949e;">CER</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </section>
                 </div>
-                
+
                 <!-- Alivio Row -->
                 <div class="tanks-grid">
                     <section class="card storage-card" id="alivio1" style="margin-bottom: 0; min-width: 0;">
@@ -298,14 +341,16 @@
                         </div>
                         <div class="value-item" style="margin-bottom: 0.2rem;">
                             <div class="val-unit-row">
-                                <span id="txt-alivio1-top" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                <span id="txt-alivio1-top" class="tank-level-top-val"
+                                    style="font-size: 1.6rem;">--</span>
                                 <span class="tank-unit" style="font-size: 0.9rem;">%</span>
                             </div>
                             <div class="value-label-green">NIVEL</div>
                         </div>
                         <div class="storage-body" style="gap: 1rem; justify-content: center;">
                             <div class="storage-img-container" style="width: 50px; height: 50px;">
-                                <img src="images/Tank 1.png" alt="Tanque Alivio 1" class="storage-img" style="object-fit: contain;">
+                                <img src="images/Tank 1.png" alt="Tanque Alivio 1" class="storage-img"
+                                    style="object-fit: contain;">
                             </div>
                             <div class="storage-bar-container" style="height: 55px; width: 12px;">
                                 <div id="alivio1-bar" class="storage-bar"></div>
@@ -318,14 +363,16 @@
                         </div>
                         <div class="value-item" style="margin-bottom: 0.2rem;">
                             <div class="val-unit-row">
-                                <span id="txt-alivio2-top" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                <span id="txt-alivio2-top" class="tank-level-top-val"
+                                    style="font-size: 1.6rem;">--</span>
                                 <span class="tank-unit" style="font-size: 0.9rem;">%</span>
                             </div>
                             <div class="value-label-green">NIVEL</div>
                         </div>
                         <div class="storage-body" style="gap: 1rem; justify-content: center;">
                             <div class="storage-img-container" style="width: 50px; height: 50px;">
-                                <img src="images/Tank 1.png" alt="Tanque Alivio 2" class="storage-img" style="object-fit: contain;">
+                                <img src="images/Tank 1.png" alt="Tanque Alivio 2" class="storage-img"
+                                    style="object-fit: contain;">
                             </div>
                             <div class="storage-bar-container" style="height: 55px; width: 12px;">
                                 <div id="alivio2-bar" class="storage-bar"></div>
