@@ -69,6 +69,13 @@ const State = {
     valvulas25m: { v1: false, v1Op: false, v1Cl: false, v2: false, v2Op: false, v2Cl: false, diagnostic: { timestamp: '', isRetained: false } },
     alivio1: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     alivio2: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    generador: { kwh: 0, status: false, fault: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    teas: { 
+        tea1: { status: false, fault: false }, 
+        tea2: { status: false, fault: false }, 
+        tea3: { status: false, fault: false }, 
+        lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } 
+    },
     lastHeartbeat: 0,
     showDiagnostics: false,
     notificationsEnabled: false,
@@ -223,6 +230,8 @@ const UI = {
         this.updateTanks();
         this.updateAlivios();
         this.updateValves25m();
+        this.updateGenerador();
+        this.updateTeas();
     },
 
     updateTanks() {
@@ -422,6 +431,59 @@ const UI = {
         this.updateDiagnostics('alivio2-diag', '@/kikes/bionegocios/Alivio2', a2.diagnostic, 1);
     },
 
+    updateGenerador() {
+        const g = State.generador;
+        const valEl = document.getElementById('txt-generador-val');
+        const barEl = document.getElementById('generador-bar');
+        const imgEl = document.getElementById('img-generador');
+
+        if (valEl) valEl.innerText = this.formatVal(g.kwh);
+        if (barEl) barEl.style.width = Math.min(100, Math.max(0, g.kwh)) + '%';
+
+        const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
+        if (imgEl) {
+            const statusOn = isOn(g.status);
+            const faultOn = isOn(g.fault);
+
+            if (faultOn) {
+                imgEl.src = 'images/Generator_Fault.png';
+                imgEl.className = 'storage-img fault-glow';
+            } else {
+                imgEl.src = statusOn ? 'images/Generator_On.png' : 'images/Generator_Off.png';
+                imgEl.className = 'storage-img' + (statusOn ? ' motor-on-glow' : '');
+            }
+        }
+
+        this.updateDiagnostics('generador-diag', '@/kikes/bionegocios/Generador', g.diagnostic, 0);
+    },
+
+    updateTeas() {
+        const t = State.teas;
+        const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
+        
+        const updateSingleTea = (id, data) => {
+            const img = document.getElementById(`img-tea-${id}`);
+            if (!img) return;
+            
+            const statusOn = isOn(data.status);
+            const faultOn = isOn(data.fault);
+            
+            if (faultOn) {
+                img.src = 'images/TEA_Fault.png';
+                img.className = 'motor-img fault-glow';
+            } else {
+                img.src = statusOn ? 'images/TEA_On.png' : 'images/TEA_Off.png';
+                img.className = 'motor-img' + (statusOn ? ' motor-on-glow' : '');
+            }
+        };
+
+        updateSingleTea(1, t.tea1);
+        updateSingleTea(2, t.tea2);
+        updateSingleTea(3, t.tea3);
+
+        this.updateDiagnostics('teas-diag', '@/kikes/bionegocios/TEAs', t.diagnostic, 1);
+    },
+
     updateDiagnostics(containerId, topic, dataObj, plcIndex = -1) {
         let container = document.getElementById(containerId);
 
@@ -578,6 +640,8 @@ const MQTT = {
             this.client.subscribe('@/kikes/bionegocios/Tanque25/Valvulas');
             this.client.subscribe('@/kikes/bionegocios/Alivio1');
             this.client.subscribe('@/kikes/bionegocios/Alivio2');
+            this.client.subscribe('@/kikes/bionegocios/Generador');
+            this.client.subscribe('@/kikes/bionegocios/TEAs');
             this.client.subscribe('kikes/gw/bionegocios/cmd/ping');
         });
 
@@ -607,7 +671,7 @@ const MQTT = {
     },
 
     handleMessage(topic, rawPayload, packet) {
-        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25', 'alivio1', 'alivio2'];
+        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25', 'alivio1', 'alivio2', 'generador', 'teas'];
         const isProcessData = encryptedTopics.some(t => topic.includes(t));
 
         let currentPayload = rawPayload;
@@ -629,6 +693,11 @@ const MQTT = {
                 if (json.timestamp) msgTimestamp = json.timestamp;
             }
         } catch (e) { }
+
+        // 3. Diagnostic Fallback: If we have data but no timestamp, assume it's live data
+        if (!msgTimestamp && finalValue) {
+            msgTimestamp = new Date().toISOString();
+        }
 
         const dataObj = { 
             value: finalValue, 
@@ -778,6 +847,29 @@ const MQTT = {
             State.alivio2.lastUpdate = now;
             State.alivio2.diagnostic = dataObj;
             UI.updateAlivios();
+        } else if (topic.includes('bionegocios/generador')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                State.generador.kwh = parseFloat(parts[0]) || 0;
+                State.generador.status = parts[1];
+                State.generador.fault = parts[2];
+                State.generador.lastUpdate = now;
+                State.generador.diagnostic = dataObj;
+                UI.updateGenerador();
+            }
+        } else if (topic.includes('bionegocios/teas')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                State.teas.tea1.status = parts[0];
+                State.teas.tea1.fault = parts[1];
+                State.teas.tea2.status = parts[2];
+                State.teas.tea2.fault = parts[3];
+                State.teas.tea3.status = parts[4];
+                State.teas.tea3.fault = parts[5];
+                State.teas.lastUpdate = now;
+                State.teas.diagnostic = dataObj;
+                UI.updateTeas();
+            }
         } else if (topic.includes('kikes/gw/bionegocios/cmd/ping')) {
             // Strategy 2: If we receive a ping, we must immediately assert we are active (if we are visible)
             if (document.visibilityState === 'visible') {

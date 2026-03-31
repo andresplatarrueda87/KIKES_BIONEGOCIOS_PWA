@@ -381,6 +381,63 @@
                     </section>
                 </div>
 
+                <!-- Generador Row -->
+                <div class="tanks-grid" style="grid-template-columns: 1fr; margin-bottom: 0;">
+                    <section class="card storage-card" id="generador" style="margin-bottom: 0; min-width: 0; padding: 0.5rem 1rem;">
+                        <div id="generador-diag" class="diagnostic-badge-root hidden"></div>
+                        <div class="tank-header">
+                            <h4>GENERADOR</h4>
+                        </div>
+                        <div class="storage-body" style="gap: 0.2rem; justify-content: center; flex-direction: column; margin: 0.2rem 0 0 0;">
+                            <div style="display: flex; gap: 0.8rem; align-items: center; justify-content: center;">
+                                <div class="storage-img-container" style="width: 100px; height: 80px;">
+                                    <img id="img-generador" src="images/Generator_Off.png" alt="Generador" class="storage-img" style="object-fit: contain;">
+                                </div>
+                                <div class="value-item">
+                                    <div class="val-unit-row">
+                                        <span id="txt-generador-val" class="tank-level-top-val" style="font-size: 1.6rem;">--</span>
+                                        <span class="tank-unit" style="font-size: 0.9rem;">kWh</span>
+                                    </div>
+                                    <div class="value-label-green" style="font-size: 0.65rem;">ENERGÍA</div>
+                                </div>
+                            </div>
+                            <div style="width: 75%; max-width: 200px;">
+                                <div class="horizontal-bar-container" style="margin-top: 0; height: 12px;">
+                                    <div id="generador-bar" class="horizontal-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- TEAs Row -->
+                <div class="tanks-grid" style="grid-template-columns: 1fr; margin-bottom: 0;">
+                    <section class="card storage-card" id="teas" style="margin-bottom: 0.5rem; min-width: 0; padding: 0.8rem;">
+                        <div id="teas-diag" class="diagnostic-badge-root hidden"></div>
+                        <div class="tank-header" style="margin-bottom: 1rem;">
+                            <h4 style="font-size: 0.85rem; letter-spacing: 2px;">ANTORCHAS (TEAS)</h4>
+                        </div>
+                        <div class="storage-body" style="gap: 2rem; justify-content: space-around; margin: 0;">
+                            
+                            <div class="motor-item">
+                                <img id="img-tea-1" src="images/TEA_Off.png" alt="TEA 1" class="motor-img" style="width: 45px !important; height: 45px !important;">
+                                <span class="motor-label" style="font-size: 0.6rem; margin-top: 5px; font-weight: 800;">TEA 1</span>
+                            </div>
+
+                            <div class="motor-item">
+                                <img id="img-tea-2" src="images/TEA_Off.png" alt="TEA 2" class="motor-img" style="width: 45px !important; height: 45px !important;">
+                                <span class="motor-label" style="font-size: 0.6rem; margin-top: 5px; font-weight: 800;">TEA 2</span>
+                            </div>
+
+                            <div class="motor-item">
+                                <img id="img-tea-3" src="images/TEA_Off.png" alt="TEA 3" class="motor-img" style="width: 45px !important; height: 45px !important;">
+                                <span class="motor-label" style="font-size: 0.6rem; margin-top: 5px; font-weight: 800;">TEA 3</span>
+                            </div>
+
+                        </div>
+                    </section>
+                </div>
+
             </div>
         </main>
 
