@@ -354,7 +354,7 @@ const UI = {
         }
         
         if (lblLocal) {
-            if (!isOn(t.local)) {
+            if (isOn(t.local)) {
                 lblLocal.classList.remove('hidden');
             } else {
                 lblLocal.classList.add('hidden');
