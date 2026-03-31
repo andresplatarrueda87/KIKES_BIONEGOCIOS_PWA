@@ -69,7 +69,7 @@ const State = {
     valvulas25m: { v1: false, v1Op: false, v1Cl: false, v2: false, v2Op: false, v2Cl: false, diagnostic: { timestamp: '', isRetained: false } },
     alivio1: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     alivio2: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
-    generador: { kwh: 0, status: false, fault: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    generador: { kw: 0, status: false, fault: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     teas: { 
         tea1: { status: false, fault: false }, 
         tea2: { status: false, fault: false }, 
@@ -437,8 +437,8 @@ const UI = {
         const barEl = document.getElementById('generador-bar');
         const imgEl = document.getElementById('img-generador');
 
-        if (valEl) valEl.innerText = this.formatVal(g.kwh);
-        if (barEl) barEl.style.width = Math.min(100, Math.max(0, g.kwh)) + '%';
+        if (valEl) valEl.innerText = this.formatVal(g.kw);
+        if (barEl) barEl.style.width = Math.min(100, Math.max(0, g.kw / 10)) + '%';
 
         const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
         if (imgEl) {
@@ -850,7 +850,7 @@ const MQTT = {
         } else if (topic.includes('bionegocios/generador')) {
             if (payload.includes('|')) {
                 const parts = payload.split('|');
-                State.generador.kwh = parseFloat(parts[0]) || 0;
+                State.generador.kw = parseFloat(parts[0]) || 0;
                 State.generador.status = parts[1];
                 State.generador.fault = parts[2];
                 State.generador.lastUpdate = now;
