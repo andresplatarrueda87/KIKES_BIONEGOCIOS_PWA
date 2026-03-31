@@ -65,7 +65,9 @@ const State = {
     },
     storage: { value: 0, lastUpdate: 0, motors: [], diagnostic: { timestamp: '', isRetained: false } },
     whirlpool: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
-    tanque25m: { value: 0, motor: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    tanque25m: { value: 0, motor: false, local: false, valvulas: [false, false], lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    alivio1: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
+    alivio2: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     lastHeartbeat: 0,
     showDiagnostics: false,
     notificationsEnabled: false,
@@ -211,13 +213,14 @@ const UI = {
         }
     },
 
-    formatVal(val, decimals = 2) {
+    formatVal(val, decimals = 1) {
         const n = parseFloat(val);
         return isNaN(n) ? '--' : n.toFixed(decimals);
     },
 
     updateDashboard() {
         this.updateTanks();
+        this.updateAlivios();
     },
 
     updateTanks() {
@@ -245,9 +248,9 @@ const UI = {
         this.updateMotors();
         this.updateTanque25m();
 
-        // Diagnostics
-        this.updateDiagnostics('bio1-diag', '@/kikes/bionegocios/BD1', State.tanks.bio1.diagnostic || { value: '', timestamp: '', isRetained: false });
-        this.updateDiagnostics('bio2-diag', '@/kikes/bionegocios/BD2', State.tanks.bio2.diagnostic || { value: '', timestamp: '', isRetained: false });
+        // Diagnostics (plcIndex: 0 = PLC 1, 1 = PLC 2)
+        this.updateDiagnostics('bio1-diag', '@/kikes/bionegocios/BD1', State.tanks.bio1.diagnostic || { value: '', timestamp: '', isRetained: false }, 0);
+        this.updateDiagnostics('bio2-diag', '@/kikes/bionegocios/BD2', State.tanks.bio2.diagnostic || { value: '', timestamp: '', isRetained: false }, 1);
     },
 
     updateMotors() {
@@ -308,7 +311,7 @@ const UI = {
         this.updateWhirlpool();
 
         // Diagnostics
-        this.updateDiagnostics('storage-diag', '@/kikes/bionegocios/PreStorage', State.storage.diagnostic);
+        this.updateDiagnostics('storage-diag', '@/kikes/bionegocios/PreStorage', State.storage.diagnostic, 0);
     },
 
     updateWhirlpool() {
@@ -320,7 +323,7 @@ const UI = {
         if (barEl) barEl.style.height = Math.min(100, Math.max(0, w.value)) + '%';
 
         // Diagnostics
-        this.updateDiagnostics('whirlpool-diag', '@/kikes/bionegocios/Whirlpool', State.whirlpool.diagnostic);
+        this.updateDiagnostics('whirlpool-diag', '@/kikes/bionegocios/Whirlpool', State.whirlpool.diagnostic, 0);
     },
 
     updateTanque25m() {
@@ -332,18 +335,63 @@ const UI = {
         if (barEl) barEl.style.height = Math.min(100, Math.max(0, t.value)) + '%';
 
         const isOn = val => val === 1 || val === '1' || String(val).toLowerCase() === 'true';
-        const img = document.getElementById('img-m25');
-        if (img) {
+        const imgPump = document.getElementById('img-m25');
+        const lblLocal = document.getElementById('lbl-m25-local');
+        const imgV1 = document.getElementById('img-v25-1');
+        const imgV2 = document.getElementById('img-v25-2');
+
+        if (imgPump) {
             const on = isOn(t.motor);
-            img.src = on ? 'images/Motor_On.png' : 'images/Motor_Off.png';
-            img.className = 'motor-img' + (on ? ' on' : '');
+            imgPump.src = on ? 'images/pump_green.png' : 'images/pump_gray.png';
+            imgPump.className = 'motor-img' + (on ? ' on' : '');
+        }
+        
+        if (lblLocal) {
+            if (!isOn(t.local)) {
+                lblLocal.classList.remove('hidden');
+            } else {
+                lblLocal.classList.add('hidden');
+            }
+        }
+
+        if (imgV1 && t.valvulas) {
+            const on = isOn(t.valvulas[0]);
+            imgV1.src = on ? 'images/Valvula_On.png' : 'images/Valvula_Off.png';
+            imgV1.className = 'motor-img' + (on ? ' on' : '');
+        }
+
+        if (imgV2 && t.valvulas) {
+            const on = isOn(t.valvulas[1]);
+            imgV2.src = on ? 'images/Valvula_On.png' : 'images/Valvula_Off.png';
+            imgV2.className = 'motor-img' + (on ? ' on' : '');
         }
 
         // Diagnostics
-        this.updateDiagnostics('tanque25m-diag', '@/kikes/bionegocios/Tanque25', t.diagnostic);
+        this.updateDiagnostics('tanque25m-diag', '@/kikes/bionegocios/Tanque25', t.diagnostic, 0);
     },
 
-    updateDiagnostics(containerId, topic, dataObj) {
+    updateAlivios() {
+        // Alivio 1
+        const a1 = State.alivio1;
+        const topEl1 = document.getElementById('txt-alivio1-top');
+        const barEl1 = document.getElementById('alivio1-bar');
+
+        if (topEl1) topEl1.innerText = this.formatVal(a1.value);
+        if (barEl1) barEl1.style.height = Math.min(100, Math.max(0, a1.value)) + '%';
+
+        // Alivio 2
+        const a2 = State.alivio2;
+        const topEl2 = document.getElementById('txt-alivio2-top');
+        const barEl2 = document.getElementById('alivio2-bar');
+
+        if (topEl2) topEl2.innerText = this.formatVal(a2.value);
+        if (barEl2) barEl2.style.height = Math.min(100, Math.max(0, a2.value)) + '%';
+
+        this.updateDiagnostics('alivio1-diag', '@/kikes/bionegocios/Alivio1', a1.diagnostic, 0);
+        this.updateDiagnostics('alivio2-diag', '@/kikes/bionegocios/Alivio2', a2.diagnostic, 1);
+    },
+
+    updateDiagnostics(containerId, topic, dataObj, plcIndex = -1) {
         let container = document.getElementById(containerId);
 
         if (!container) {
@@ -360,12 +408,13 @@ const UI = {
         let badgeClass, badgeText;
         const now = Date.now();
         const isStale = dataObj.receivedAt ? (now - dataObj.receivedAt > 60000) : false;
+        const isPlcNodeOffline = (plcIndex >= 0) ? (State.plcStatuses[plcIndex] !== 'online') : !State.isPlcConnected;
 
         if (!dataObj.timestamp) {
             // No timestamp = never received data
             badgeClass = 'diag-offline';
             badgeText = '⊘ OFFLINE';
-        } else if (dataObj.isRetained || !State.isGatewayOnline || !State.isPlcConnected || isStale) {
+        } else if (dataObj.isRetained || !State.isGatewayOnline || isPlcNodeOffline || isStale) {
             badgeClass = 'diag-retained';
             badgeText = '⚠ RETENIDO';
         } else {
@@ -494,6 +543,8 @@ const MQTT = {
             this.client.subscribe('@/kikes/bionegocios/PreStorage');
             this.client.subscribe('@/kikes/bionegocios/Whirlpool');
             this.client.subscribe('@/kikes/bionegocios/Tanque25');
+            this.client.subscribe('@/kikes/bionegocios/Alivio1');
+            this.client.subscribe('@/kikes/bionegocios/Alivio2');
         });
 
         this.client.on('message', (topic, payload, packet) => {
@@ -522,7 +573,7 @@ const MQTT = {
     },
 
     handleMessage(topic, rawPayload, packet) {
-        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25'];
+        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25', 'alivio1', 'alivio2'];
         const isProcessData = encryptedTopics.some(t => topic.includes(t));
 
         let currentPayload = rawPayload;
@@ -562,7 +613,7 @@ const MQTT = {
 
     processData(topic, dataObj) {
         const now = Date.now();
-        const payload = dataObj.value;
+        const payload = typeof dataObj.value === 'string' ? dataObj.value.replace(/,/g, '.') : dataObj.value;
 
         // Status topics
         if (topic.endsWith('kikes/gw/bionegocios/status')) {
@@ -664,10 +715,22 @@ const MQTT = {
                 const parts = payload.split('|');
                 State.tanque25m.value = parseFloat(parts[0]) || 0;
                 State.tanque25m.motor = parts[1];
+                State.tanque25m.local = parts[2];
+                State.tanque25m.valvulas = [parts[3], parts[4]];
                 State.tanque25m.lastUpdate = now;
                 State.tanque25m.diagnostic = dataObj;
                 UI.updateTanque25m();
             }
+        } else if (topic.includes('bionegocios/alivio1')) {
+            State.alivio1.value = parseFloat(payload) || 0;
+            State.alivio1.lastUpdate = now;
+            State.alivio1.diagnostic = dataObj;
+            UI.updateAlivios();
+        } else if (topic.includes('bionegocios/alivio2')) {
+            State.alivio2.value = parseFloat(payload) || 0;
+            State.alivio2.lastUpdate = now;
+            State.alivio2.diagnostic = dataObj;
+            UI.updateAlivios();
         }
     }
 };
