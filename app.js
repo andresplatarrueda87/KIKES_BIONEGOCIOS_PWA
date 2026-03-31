@@ -71,10 +71,11 @@ const State = {
     alivio2: { value: 0, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     generador: { kw: 0, status: false, fault: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     teas: { 
-        tea1: { status: false, fault: false }, 
+        tea1: { status: false, fault: false, diagnostic: { timestamp: '', isRetained: false } }, 
         tea2: { status: false, fault: false }, 
         tea3: { status: false, fault: false }, 
-        lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } 
+        tea2y3_diag: { timestamp: '', isRetained: false },
+        lastUpdate: 0
     },
     lastHeartbeat: 0,
     showDiagnostics: false,
@@ -481,7 +482,8 @@ const UI = {
         updateSingleTea(2, t.tea2);
         updateSingleTea(3, t.tea3);
 
-        this.updateDiagnostics('teas-diag', '@/kikes/bionegocios/TEAs', t.diagnostic, 1);
+        this.updateDiagnostics('tea1-diag', '@/kikes/bionegocios/TEA1', t.tea1.diagnostic, 0);
+        this.updateDiagnostics('tea2y3-diag', '@/kikes/bionegocios/TEA2Y3', t.tea2y3_diag, 1);
     },
 
     updateDiagnostics(containerId, topic, dataObj, plcIndex = -1) {
@@ -641,7 +643,8 @@ const MQTT = {
             this.client.subscribe('@/kikes/bionegocios/Alivio1');
             this.client.subscribe('@/kikes/bionegocios/Alivio2');
             this.client.subscribe('@/kikes/bionegocios/Generador');
-            this.client.subscribe('@/kikes/bionegocios/TEAs');
+            this.client.subscribe('@/kikes/bionegocios/TEA1');
+            this.client.subscribe('@/kikes/bionegocios/TEA2Y3');
             this.client.subscribe('kikes/gw/bionegocios/cmd/ping');
         });
 
@@ -671,7 +674,7 @@ const MQTT = {
     },
 
     handleMessage(topic, rawPayload, packet) {
-        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25', 'alivio1', 'alivio2', 'generador', 'teas'];
+        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25', 'alivio1', 'alivio2', 'generador', 'tea1', 'tea2y3'];
         const isProcessData = encryptedTopics.some(t => topic.includes(t));
 
         let currentPayload = rawPayload;
@@ -857,17 +860,24 @@ const MQTT = {
                 State.generador.diagnostic = dataObj;
                 UI.updateGenerador();
             }
-        } else if (topic.includes('bionegocios/teas')) {
+        } else if (topic.includes('bionegocios/tea1')) {
             if (payload.includes('|')) {
                 const parts = payload.split('|');
                 State.teas.tea1.status = parts[0];
                 State.teas.tea1.fault = parts[1];
-                State.teas.tea2.status = parts[2];
-                State.teas.tea2.fault = parts[3];
-                State.teas.tea3.status = parts[4];
-                State.teas.tea3.fault = parts[5];
+                State.teas.tea1.diagnostic = dataObj;
                 State.teas.lastUpdate = now;
-                State.teas.diagnostic = dataObj;
+                UI.updateTeas();
+            }
+        } else if (topic.includes('bionegocios/tea2y3')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                State.teas.tea2.status = parts[0];
+                State.teas.tea2.fault = parts[1];
+                State.teas.tea3.status = parts[2];
+                State.teas.tea3.fault = parts[3];
+                State.teas.tea2y3_diag = dataObj;
+                State.teas.lastUpdate = now;
                 UI.updateTeas();
             }
         } else if (topic.includes('kikes/gw/bionegocios/cmd/ping')) {
