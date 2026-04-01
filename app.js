@@ -72,9 +72,8 @@ const State = {
     generador: { kw: 0, status: false, fault: false, lastUpdate: 0, diagnostic: { timestamp: '', isRetained: false } },
     teas: { 
         tea1: { status: false, fault: false, diagnostic: { timestamp: '', isRetained: false } }, 
-        tea2: { status: false, fault: false }, 
-        tea3: { status: false, fault: false }, 
-        tea2y3_diag: { timestamp: '', isRetained: false },
+        tea2: { status: false, fault: false, diagnostic: { timestamp: '', isRetained: false } }, 
+        tea3: { status: false, fault: false, diagnostic: { timestamp: '', isRetained: false } }, 
         lastUpdate: 0
     },
     lastHeartbeat: 0,
@@ -483,7 +482,8 @@ const UI = {
         updateSingleTea(3, t.tea3);
 
         this.updateDiagnostics('tea1-diag', '@/kikes/bionegocios/TEA1', t.tea1.diagnostic, 0);
-        this.updateDiagnostics('tea2y3-diag', '@/kikes/bionegocios/TEA2Y3', t.tea2y3_diag, 1);
+        this.updateDiagnostics('tea2-diag', '@/kikes/bionegocios/TEA2', t.tea2.diagnostic, 1);
+        this.updateDiagnostics('tea3-diag', '@/kikes/bionegocios/TEA3', t.tea3.diagnostic, 1);
     },
 
     updateDiagnostics(containerId, topic, dataObj, plcIndex = -1) {
@@ -541,7 +541,7 @@ const UI = {
             }
 
             container.innerHTML = `
-                <div class="diag-topic">${topic}</div>
+                <!-- <div class="diag-topic">${topic}</div> -->
                 <div class="diag-meta">
                     <span class="diag-status ${badgeClass}">${badgeText}</span>
                     ${timeDisplay ? `<span class="diag-time">🕒 ${timeDisplay}</span>` : ''}
@@ -644,7 +644,8 @@ const MQTT = {
             this.client.subscribe('@/kikes/bionegocios/Alivio2');
             this.client.subscribe('@/kikes/bionegocios/Generador');
             this.client.subscribe('@/kikes/bionegocios/TEA1');
-            this.client.subscribe('@/kikes/bionegocios/TEA2Y3');
+            this.client.subscribe('@/kikes/bionegocios/TEA2');
+            this.client.subscribe('@/kikes/bionegocios/TEA3');
             this.client.subscribe('kikes/gw/bionegocios/cmd/ping');
         });
 
@@ -674,7 +675,7 @@ const MQTT = {
     },
 
     handleMessage(topic, rawPayload, packet) {
-        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25', 'alivio1', 'alivio2', 'generador', 'tea1', 'tea2y3'];
+        const encryptedTopics = ['bd1', 'bd2', 'prestorage', 'whirlpool', 'tanque25', 'alivio1', 'alivio2', 'generador', 'tea1', 'tea2', 'tea3'];
         const isProcessData = encryptedTopics.some(t => topic.includes(t));
 
         let currentPayload = rawPayload;
@@ -869,14 +870,21 @@ const MQTT = {
                 State.teas.lastUpdate = now;
                 UI.updateTeas();
             }
-        } else if (topic.includes('bionegocios/tea2y3')) {
+        } else if (topic.includes('bionegocios/tea2')) {
             if (payload.includes('|')) {
                 const parts = payload.split('|');
                 State.teas.tea2.status = parts[0];
                 State.teas.tea2.fault = parts[1];
-                State.teas.tea3.status = parts[2];
-                State.teas.tea3.fault = parts[3];
-                State.teas.tea2y3_diag = dataObj;
+                State.teas.tea2.diagnostic = dataObj;
+                State.teas.lastUpdate = now;
+                UI.updateTeas();
+            }
+        } else if (topic.includes('bionegocios/tea3')) {
+            if (payload.includes('|')) {
+                const parts = payload.split('|');
+                State.teas.tea3.status = parts[0];
+                State.teas.tea3.fault = parts[1];
+                State.teas.tea3.diagnostic = dataObj;
                 State.teas.lastUpdate = now;
                 UI.updateTeas();
             }

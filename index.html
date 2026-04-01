@@ -418,8 +418,8 @@
                 </div>
 
                 <!-- TEAs Row -->
-                <div class="tanks-grid" style="grid-template-columns: 1fr 2fr; margin-bottom: 0;">
-                    <!-- TEA 1 Card (1/3) -->
+                <div class="tanks-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
+                    <!-- TEA 1 Card -->
                     <section class="card storage-card" id="tea-1-card"
                         style="margin-bottom: 0.5rem; min-width: 0; padding: 0.8rem;">
                         <div id="tea1-diag" class="diagnostic-badge-root hidden"></div>
@@ -430,31 +430,36 @@
                             <div class="motor-item">
                                 <img id="img-tea-1" src="images/TEA_Off.png" alt="TEA 1" class="motor-img"
                                     style="width: 45px !important; height: 45px !important;">
-                                <span class="motor-label"
-                                    style="font-size: 0.6rem; margin-top: 5px; font-weight: 800;">STATUS</span>
                             </div>
                         </div>
                     </section>
 
-                    <!-- TEA 2 & 3 Card (2/3) -->
-                    <section class="card storage-card" id="tea-2y3-card"
+                    <!-- TEA 2 Card -->
+                    <section class="card storage-card" id="tea-2-card"
                         style="margin-bottom: 0.5rem; min-width: 0; padding: 0.8rem;">
-                        <div id="tea2y3-diag" class="diagnostic-badge-root hidden"></div>
+                        <div id="tea2-diag" class="diagnostic-badge-root hidden"></div>
                         <div class="tank-header" style="margin-bottom: 1rem;">
-                            <h4 style="font-size: 0.85rem; letter-spacing: 2px;">TEAs 2 Y 3</h4>
+                            <h4 style="font-size: 0.85rem; letter-spacing: 2px;">TEA 2</h4>
                         </div>
-                        <div class="storage-body" style="gap: 2rem; justify-content: space-around; margin: 0;">
+                        <div class="storage-body" style="justify-content: center; margin: 0;">
                             <div class="motor-item">
                                 <img id="img-tea-2" src="images/TEA_Off.png" alt="TEA 2" class="motor-img"
                                     style="width: 45px !important; height: 45px !important;">
-                                <span class="motor-label"
-                                    style="font-size: 0.6rem; margin-top: 5px; font-weight: 800;">TEA 2</span>
                             </div>
+                        </div>
+                    </section>
+
+                    <!-- TEA 3 Card -->
+                    <section class="card storage-card" id="tea-3-card"
+                        style="margin-bottom: 0.5rem; min-width: 0; padding: 0.8rem;">
+                        <div id="tea3-diag" class="diagnostic-badge-root hidden"></div>
+                        <div class="tank-header" style="margin-bottom: 1rem;">
+                            <h4 style="font-size: 0.85rem; letter-spacing: 2px;">TEA 3</h4>
+                        </div>
+                        <div class="storage-body" style="justify-content: center; margin: 0;">
                             <div class="motor-item">
                                 <img id="img-tea-3" src="images/TEA_Off.png" alt="TEA 3" class="motor-img"
                                     style="width: 45px !important; height: 45px !important;">
-                                <span class="motor-label"
-                                    style="font-size: 0.6rem; margin-top: 5px; font-weight: 800;">TEA 3</span>
                             </div>
                         </div>
                     </section>
